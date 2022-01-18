@@ -553,13 +553,6 @@ def app_streaming():
             "Select transform type", ("noop", "cartoon", "edges", "rotate")
         )
 
-    st.markdown(
-        "The video filter in this demo is based on "
-        "https://github.com/aiortc/aiortc/blob/2362e6d1f0c730a0f8c387bbea76546775ad2fe8/examples/server/server.py#L34. "  # noqa: E501
-        "Many thanks to the project."
-    )
-
-
 def app_sendonly_video():
     """A sample to use WebRTC in sendonly mode to transfer frames
     from the browser to the server and to render frames via `st.image`."""
