@@ -1,0 +1,89 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - main
+      - develop/**
+    paths-ignore:
+      - 'streamlit_webrtc/frontend/**'
+  pull_request:
+    branches:
+      - main
+      - develop/**
+    paths-ignore:
+      - 'streamlit_webrtc/frontend/**'
+
+jobs:
+  tests:
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7, 3.8, 3.9]
+        streamlit-version: [null]
+        include:
+          # Test with streamlit <1.4.0 and >=1.4.0. See https://github.com/whitphx/streamlit-webrtc/issues/598
+          - python-version: 3.9
+            streamlit-version: 1.0.0
+          - python-version: 3.9
+            streamlit-version: 1.4.0
+
+    steps:
+    - uses: actions/checkout@v2.4.0
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2.3.1
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install poetry
+      run: |
+        curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+        echo "$HOME/.poetry/bin" >> $GITHUB_PATH
+
+    # Ref: https://github.com/python-poetry/poetry/blob/de0b32c245c72568cf546090600d4626917cd3a4/.github/workflows/main.yml#L46-L60
+    - name: Configure poetry
+      run: poetry config virtualenvs.in-project true
+    - name: Set up cache
+      uses: actions/cache@v2.1.7
+      id: cache
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ steps.full-python-version.outputs.version }}-${{ hashFiles('**/poetry.lock') }}
+    - name: Ensure cache is healthy
+      if: steps.cache.outputs.cache-hit == 'true'
+      shell: bash
+      run: timeout 10s poetry run pip --version || rm -rf .venv
+
+    - name: Install a specific version of Streamlit
+      if: ${{ matrix.streamlit-version }}
+      run: poetry add -D streamlit=="${STREAMLIT_VERSION}"
+      env:
+        STREAMLIT_VERSION: ${{ matrix.streamlit-version }}
+    - name: Install dependencies
+      run: poetry install
+    - name: Lint with black, isort, and flake8
+      run: |
+        poetry run black . --check
+        poetry run isort . --check
+        poetry run flake8
+    - name: Type checking with mypy
+      run: |
+        poetry run mypy .
+
+    # Frontend build is necessary for the package to be importable, in the tests
+    - name: Set up Node.js
+      uses: actions/setup-node@v2.5.1
+      with:
+        node-version: '14.x'
+        cache: 'npm'
+        cache-dependency-path: streamlit_webrtc/frontend/package-lock.json
+    - name: Install fronend dependencies
+      run: npm ci
+      working-directory: streamlit_webrtc/frontend
+    - name: Built the frontend
+      run: npm run build --if-present
+      working-directory: streamlit_webrtc/frontend
+
+    - name: Test with pytest
+      run: |
+        poetry run pytest
