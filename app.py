@@ -144,14 +144,6 @@ def main():
     elif app_mode == programatically_control_page:
         app_programatically_play()
 
-    st.sidebar.markdown(
-        """
----
-<a href="https://www.buymeacoffee.com/whitphx" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" width="180" height="50" ></a>
-    """,  # noqa: E501
-        unsafe_allow_html=True,
-    )
-
     logger.debug("=== Alive threads ===")
     for thread in threading.enumerate():
         if thread.is_alive():
@@ -223,13 +215,7 @@ def app_video_filters():
             "Select transform type", ("noop", "cartoon", "edges", "rotate")
         )
 
-    st.markdown(
-        "This demo is based on "
-        "https://github.com/aiortc/aiortc/blob/2362e6d1f0c730a0f8c387bbea76546775ad2fe8/examples/server/server.py#L34. "  # noqa: E501
-        "Many thanks to the project."
-    )
-
-
+ 
 def app_audio_filter():
     DEFAULT_GAIN = 1.0
 
