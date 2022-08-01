@@ -20,7 +20,7 @@ typing_extensions = { version = ">=3.7.4,<5.0.0", python = "<3.8" }
 [tool.poetry.dev-dependencies]
 black = "^21.12b0"
 isort = "^5.10.1"
-flake8 = "^4.0.1"
+flake8 = "^5.0.2"
 opencv-python = "^4.5.3"
 mypy = "^0.931"
 pydub = "^0.25.1"
